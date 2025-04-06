@@ -1,0 +1,101 @@
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+    id 'groovy'
+    id 'idea'
+    id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '1.3.1'
+    id 'net.minecraftforge.licenser' version '1.2.0'
+    id 'net.minecraftforge.gradleutils' version '2.5.1'
+}
+
+final projectDisplayName = 'Gradle Decompiler'
+description = 'A Gradle plugin to decompile dependencies without sources.'
+group = 'me.jonathing.gradle'
+version = gitversion.tagOffset
+
+println "Version: $version"
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+tasks.withType(GroovyCompile).configureEach {
+    groovyOptions.optimizationOptions.indy = true
+}
+
+dependencies {
+    compileOnly libs.nulls
+}
+
+license {
+    header = project.file('LICENSE-header.txt')
+    newLine = false
+    exclude '**/*.properties'
+}
+
+javadoc.enabled = false
+groovydoc {
+    use = true
+    exclude '**/*.java' // Java classes are package-private and utility only
+}
+
+// javadocJar is created after evaluation, so we need to configure it here
+afterEvaluate {
+    tasks.named('javadocJar', Jar) {
+        dependsOn groovydoc
+        from groovydoc.destinationDir
+    }
+}
+
+changelog {
+    fromBase()
+    publishAll = false
+}
+
+gradlePlugin {
+    website = gitversion.url
+    vcsUrl = gitversion.url + '.git'
+    plugins {
+        decompiler {
+            id = 'me.jonathing.gradle.decompiler'
+            implementationClass = 'me.jonathing.gradle.decompiler.DecompilerPlugin'
+            displayName = projectDisplayName
+            description = project.description
+        }
+    }
+}
+
+publishing {
+    publications.register('pluginMaven', MavenPublication) {
+        changelog.publish it
+        pom { pom ->
+            artifactId = 'decompiler'
+            name = projectDisplayName
+            description = project.description
+
+            licenses {
+                license {
+                    name = 'AGPL-3.0-only'
+                    url = 'https://www.gnu.org/licenses/agpl.txt'
+                    distribution = 'repo'
+                }
+            }
+
+            developers {
+                developer gradleutils.pom.developers.Jonathing
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'ModdingLegacyMaven'
+            url = uri('https://maven.moddinglegacy.com/repository/modding-legacy')
+            credentials {
+                username = project.findProperty('mlm.user') ?: System.getenv('ML_USERNAME')
+                password = project.findProperty('mlm.key') ?: System.getenv('ML_TOKEN')
+            }
+        }
+    }
+}
+
+idea.module { downloadSources = downloadJavadoc = true }

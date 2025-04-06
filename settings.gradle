@@ -1,0 +1,11 @@
+rootProject.name = 'gradle-decompiler'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+
+    versionCatalogs.register('libs') {
+        library 'nulls', 'org.jetbrains', 'annotations' version '26.0.2'
+    }
+}
