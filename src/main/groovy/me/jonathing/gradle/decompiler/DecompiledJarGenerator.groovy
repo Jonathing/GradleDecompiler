@@ -48,7 +48,6 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
 
         if (sources.get().asFile.exists()) return
 
-        sendNote()
         LOGGER.lifecycle 'Decompiling {}', input.name
 
         var result = this.execOperations.javaexec { exec ->
@@ -66,13 +65,5 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
 
         if (result.exitValue != 0)
             LOGGER.error 'ERROR: Failed to decompile {}', input.name
-    }
-
-    private static boolean note
-    private static void sendNote() {
-        if (note) return
-
-        LOGGER.lifecycle 'NOTE: If sources cannot be viewed, please restart or invalidate caches in your IDE.'
-        note = true
     }
 }

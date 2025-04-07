@@ -16,6 +16,8 @@ import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 
+import static me.jonathing.gradle.decompiler.DecompilerPlugin.LOGGER
+
 @CompileStatic
 final class DecompilerExtension {
     public static final String NAME = 'decompiler'
@@ -25,6 +27,7 @@ final class DecompilerExtension {
 
     @PackageScope DecompilerExtension(Project project, ObjectFactory objects, ProviderFactory providers) {
         this.dependencies = project.dependencies.tap {
+            LOGGER.debug 'Adding the decompiled attribute to project: {}', project
             attributesSchema.attribute Constants.ATTRIBUTE_TRANSFORMED
             artifactTypes.named(ArtifactTypeDefinition.JAR_TYPE) { jar ->
                 jar.attributes.attribute Constants.ATTRIBUTE_TRANSFORMED, false
@@ -32,8 +35,10 @@ final class DecompilerExtension {
         }
 
         project.afterEvaluate { p ->
+            LOGGER.debug 'Registering the decompiler artifact transform for project: {}', p
             p.dependencies.registerTransform(DecompiledJarGenerator) { spec ->
                 spec.parameters.decompiler.set objects.fileProperty().fileProvider(providers.provider {
+                    LOGGER.debug 'Using decompiler: {}', this.decompiler
                     p.configurations.detachedConfiguration(
                         p.dependencies.create(this.decompiler)
                     ).singleFile
@@ -58,6 +63,8 @@ final class DecompilerExtension {
                 dependency.attributes {
                     it.attribute Constants.ATTRIBUTE_TRANSFORMED, true
                 }
+            } else {
+                throw new IllegalArgumentException('Decompilable dependency must be a module or have configurable attributes')
             }
         }
     }
