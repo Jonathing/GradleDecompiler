@@ -37,8 +37,9 @@ final class DecompilerExtension {
         project.afterEvaluate { p ->
             LOGGER.debug 'Registering the decompiler artifact transform for project: {}', p
             p.dependencies.registerTransform(DecompiledJarGenerator) { spec ->
-                spec.parameters.decompiler.set objects.fileProperty().fileProvider(providers.provider {
-                    LOGGER.debug 'Using decompiler: {}', this.decompiler
+                LOGGER.debug 'Using decompiler: {}', this.decompiler
+                spec.parameters.decompilerName.set this.decompiler
+                spec.parameters.decompilerArtifact.set objects.fileProperty().fileProvider(providers.provider {
                     p.configurations.detachedConfiguration(
                         p.dependencies.create(this.decompiler)
                     ).singleFile

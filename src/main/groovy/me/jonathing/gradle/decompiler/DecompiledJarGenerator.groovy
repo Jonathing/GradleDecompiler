@@ -27,6 +27,7 @@ import javax.inject.Inject
 abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
     interface Parameters extends TransformParameters {
         abstract @InputFile RegularFileProperty getDecompiler()
+        abstract @Input Property<String> getDecompilerName()
     }
 
     private static final Logger LOGGER = Logging.getLogger DecompiledJarGenerator
@@ -53,10 +54,11 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
         var result = this.execOperations.javaexec { exec ->
             exec.standardOutput = new ByteArrayOutputStream()
             exec.errorOutput = new ByteArrayOutputStream()
-            exec.classpath = this.objects.fileCollection().from this.parameters.decompiler.get()
+
+            exec.classpath = this.objects.fileCollection().from this.parameters.decompilerArtifact.get()
             exec.args = [
-                '--banner=', 'Decompiled with VineFlower using GradleDecompiler',
-                '--skip-extra-files', 'true',
+                "--banner=/* Decompiled by GradleDecompiler using ${this.parameters.decompilerName.get()}\n * https://github.com/Jonathing/GradleDecompiler\n */\n",
+                '--skip-extra-files=true',
                 '--file',
                 this.inputArtifact.get().asFile.absolutePath,
                 sources.locationOnly.get().asFile.absolutePath
