@@ -60,6 +60,23 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
          * @see <a href="https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.artifacts/-configuration-container/detached-configuration.html">ConfigurationContainer.detachedConfiguration(Dependency...)</a>
          */
         abstract @InputFile RegularFileProperty getDecompilerArtifact()
+
+        /**
+         * Whether the decompiler should add a comment banner to the decompiled sources. This is set from the extension.
+         *
+         * @return Whether to add a comment banner (as a property)
+         * @see DecompilerExtension#useCommentBanner
+         */
+        abstract @Input @Optional Property<Boolean> getUseCommentBanner()
+
+        /**
+         * Whether the decompiler should strip non-class files from the decompiled sources. This is set from the
+         * extension.
+         *
+         * @return Whether to strip non-class files (as a property)
+         * @see DecompilerExtension#strip
+         */
+        abstract @Input @Optional Property<Boolean> getStrip()
     }
 
     private static final Logger LOGGER = Logging.getLogger DecompiledJarGenerator
@@ -100,13 +117,17 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
             exec.errorOutput = new ByteArrayOutputStream()
 
             exec.classpath = this.objects.fileCollection().from this.parameters.decompilerArtifact.get()
-            exec.args = [
-                "--banner=/* Decompiled by GradleDecompiler using ${this.parameters.decompilerName.get()}\n * https://github.com/Jonathing/GradleDecompiler\n */\n",
-                '--skip-extra-files=true',
-                '--file',
-                this.inputArtifact.get().asFile.absolutePath,
-                sources.locationOnly.get().asFile.absolutePath
-            ]
+            exec.args = new ArrayList<String>().tap { args ->
+                if (this.parameters.useCommentBanner.getOrElse(false))
+                    args.add "--banner=/*\n * Decompiled by GradleDecompiler using ${this.parameters.decompilerName.get()}\n * https://github.com/Jonathing/GradleDecompiler\n */\n".toString()
+
+                if (this.parameters.strip.getOrElse(false))
+                    args.add '--skip-extra-files=true'
+
+                args.add '--file'
+                args.add input.absolutePath
+                args.add sources.locationOnly.get().asFile.absolutePath
+            }
         }
 
         if (result.exitValue != 0)

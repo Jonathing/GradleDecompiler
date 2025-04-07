@@ -58,6 +58,8 @@ final class DecompilerExtension {
                             p.dependencies.create(this.decompiler)
                         ).singleFile
                     })
+                    parameters.useCommentBanner.set this.useCommentBanner
+                    parameters.strip.set this.strip
                 }
 
                 // This is how we tell Gradle that this is a JAR to be decompiled, so it can use our transformer.

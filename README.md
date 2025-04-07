@@ -29,12 +29,18 @@ In your `build.gradle` file, apply the plugin and configure it.
 ```groovy
 plugins {
     id 'java'
-    id 'me.jonathing.gradle.decompiler' version '0.1.0'
+    id 'me.jonathing.gradle.decompiler' version '0.1.4'
 }
 
 decompiler {
-    // Optionally change the artifact used as the decompiler.
-    decompiler = 'org.vineflower:vineflower:1.11.1' // this is the default and does not need to be set
+    // optional: change which decompiler to use
+    decompiler = 'org.vineflower:vineflower:1.11.1' // default: latest vineflower
+
+    // optional: disable the comment banner at the top of decompiled sources
+    useCommentBanner = false // default: true
+
+    // optional: keep non-class files from decompiled source JARs
+    strip = false // default: true
 }
 ```
 
