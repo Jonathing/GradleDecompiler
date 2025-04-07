@@ -5,6 +5,7 @@
 package me.jonathing.gradle.decompiler
 
 import groovy.transform.CompileStatic
+import groovy.transform.NullCheck
 import groovy.transform.PackageScope
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
@@ -72,17 +73,19 @@ final class DecompilerExtension {
     /**
      * Adds a dependency to be decompiled.
      *
-     * @param value   The dependency (notation)
-     * @param closure The configuring closure for the dependency
+     * @param dependencyNotation The dependency (notation)
+     * @param configureClosure   The configuring closure for the dependency
      * @return The dependency that was added
+     * @see <a href="https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/create.html">DependencyHandler.create(Object, Closure)</a>
      */
+    @NullCheck
     Dependency dep(
-        def value,
+        def dependencyNotation,
         @DelegatesTo(Dependency)
         @ClosureParams(value = SimpleType, options = 'org.gradle.api.artifacts.Dependency')
-            Closure<Void> closure = {}
+            Closure<Void> configureClosure = {}
     ) {
-        this.dependencies.create(value, closure).tap { dependency ->
+        this.dependencies.create(dependencyNotation, configureClosure).tap { dependency ->
             if (dependency instanceof HasConfigurableAttributes<?>) {
                 dependency.attributes {
                     it.attribute Constants.ATTRIBUTE_TRANSFORMED, true
@@ -91,5 +94,10 @@ final class DecompilerExtension {
                 throw new IllegalArgumentException('Decompilable dependency must be a module or have configurable attributes')
             }
         }
+    }
+
+    @NullCheck
+    void setDecompiler(String decompiler) {
+        this.decompiler = decompiler
     }
 }

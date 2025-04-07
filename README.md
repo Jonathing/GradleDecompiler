@@ -29,7 +29,7 @@ In your `build.gradle` file, apply the plugin and configure it.
 ```groovy
 plugins {
     id 'java'
-    id 'me.jonathing.gradle.decompiler' version '0.1.4'
+    id 'me.jonathing.gradle.decompiler' version '0.1.5'
 }
 
 decompiler {

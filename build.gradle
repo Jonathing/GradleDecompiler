@@ -4,9 +4,9 @@ plugins {
     id 'groovy'
     id 'idea'
     id 'maven-publish'
-    id 'com.gradle.plugin-publish' version '1.3.1'
-    id 'net.minecraftforge.licenser' version '1.2.0'
-    id 'net.minecraftforge.gradleutils' version '2.5.1'
+    alias libs.plugins.gradle.publishPlugins
+    alias libs.plugins.forge.licenser
+    alias libs.plugins.forge.gradleutils
 }
 
 final projectDisplayName = 'Gradle Decompiler'
