@@ -18,12 +18,25 @@ import org.gradle.api.provider.ProviderFactory
 
 import static me.jonathing.gradle.decompiler.DecompilerPlugin.LOGGER
 
+/**
+ * The extension for the decompiler plugin. This is used to configure the decompiler and add dependencies to be
+ * decompiled by the JAR generator.
+ *
+ * @see DecompiledJarGenerator
+ */
 @CompileStatic
 final class DecompilerExtension {
+    /** The name of the extension. */
     public static final String NAME = 'decompiler'
 
     private final DependencyHandler dependencies
+
+    /** The maven coordinate of the decompiler to be used. */
     String decompiler = Constants.VINEFLOWER_ARTIFACT
+    /** Whether the decompiler should add a comment banner to the decompiled sources. */
+    public boolean useCommentBanner = true
+    /** Whether the decompiler should strip non-class files from the decompiled sources. */
+    public boolean strip = true
 
     @PackageScope DecompilerExtension(Project project, ObjectFactory objects, ProviderFactory providers) {
         this.dependencies = project.dependencies.tap {
@@ -37,29 +50,37 @@ final class DecompilerExtension {
         project.afterEvaluate { p ->
             LOGGER.debug 'Registering the decompiler artifact transform for project: {}', p
             p.dependencies.registerTransform(DecompiledJarGenerator) { spec ->
-                LOGGER.debug 'Using decompiler: {}', this.decompiler
-                spec.parameters.decompilerName.set this.decompiler
-                spec.parameters.decompilerArtifact.set objects.fileProperty().fileProvider(providers.provider {
-                    p.configurations.detachedConfiguration(
-                        p.dependencies.create(this.decompiler)
-                    ).singleFile
-                })
+                spec.parameters { parameters ->
+                    LOGGER.debug 'Using decompiler: {}', this.decompiler
+                    parameters.decompilerName.set this.decompiler
+                    parameters.decompilerArtifact.set objects.fileProperty().fileProvider(providers.provider {
+                        p.configurations.detachedConfiguration(
+                            p.dependencies.create(this.decompiler)
+                        ).singleFile
+                    })
+                }
 
+                // This is how we tell Gradle that this is a JAR to be decompiled, so it can use our transformer.
                 spec.from.attribute Constants.ATTRIBUTE_TRANSFORMED, false
                 spec.to.attribute Constants.ATTRIBUTE_TRANSFORMED, true
             }
         }
     }
 
+    /**
+     * Adds a dependency to be decompiled.
+     *
+     * @param value   The dependency (notation)
+     * @param closure The configuring closure for the dependency
+     * @return The dependency that was added
+     */
     Dependency dep(
         def value,
         @DelegatesTo(Dependency)
         @ClosureParams(value = SimpleType, options = 'org.gradle.api.artifacts.Dependency')
             Closure<Void> closure = {}
     ) {
-        this.dependencies.create(value) { Dependency dependency ->
-            closure.call dependency
-
+        this.dependencies.create(value, closure).tap { dependency ->
             if (dependency instanceof HasConfigurableAttributes<?>) {
                 dependency.attributes {
                     it.attribute Constants.ATTRIBUTE_TRANSFORMED, true
