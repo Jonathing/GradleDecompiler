@@ -26,8 +26,8 @@ import javax.inject.Inject
 
 /**
  * Generates a decompiled JAR from the input artifact JAR using the given decompiler.
- * <p>The decompiler used is a parameter set by the extension By default it is the latest release of
- * <a href="https://vineflower.org/">VineFlower</a> at the time of publication.</p>
+ * <p>The decompiler used is a parameter set by the extension By default it is the latest release of VineFlower at the
+ * time of publication.</p>
  *
  * @see DecompiledJarGenerator.Parameters#getDecompilerArtifact()
  * @see DecompilerExtension#decompiler
@@ -55,7 +55,7 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
          * The decompiler to use. From the extension, this is set by using a detached configuration containing the
          * requested decompiler.
          *
-         * @return The decompilar JAR file (as a property)
+         * @return The decompiler JAR file (as a property)
          * @see #getDecompilerName()
          * @see <a href="https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.artifacts/-configuration-container/detached-configuration.html">ConfigurationContainer.detachedConfiguration(Dependency...)</a>
          */
@@ -118,10 +118,10 @@ abstract class DecompiledJarGenerator implements TransformAction<Parameters> {
 
             exec.classpath = this.objects.fileCollection().from this.parameters.decompilerArtifact.get()
             exec.args = new ArrayList<String>().tap { args ->
-                if (this.parameters.useCommentBanner.getOrElse(false))
+                if (this.parameters.useCommentBanner.getOrElse false)
                     args.add "--banner=/*\n * Decompiled by GradleDecompiler using ${this.parameters.decompilerName.get()}\n * https://github.com/Jonathing/GradleDecompiler\n */\n".toString()
 
-                if (this.parameters.strip.getOrElse(false))
+                if (this.parameters.strip.getOrElse false)
                     args.add '--skip-extra-files=true'
 
                 args.add '--file'

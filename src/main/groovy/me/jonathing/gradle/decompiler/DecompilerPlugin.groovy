@@ -36,6 +36,6 @@ abstract class DecompilerPlugin implements Plugin<Project> {
      */
     @Override
     void apply(Project project) {
-        project.extensions.add(DecompilerExtension.NAME, new DecompilerExtension(project, this.objects, this.providers))
+        project.extensions.add DecompilerExtension.NAME, new DecompilerExtension(project, this.objects, this.providers)
     }
 }

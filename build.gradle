@@ -41,8 +41,10 @@ groovydoc {
 // javadocJar is created after evaluation, so we need to configure it here
 afterEvaluate {
     tasks.named('javadocJar', Jar) {
+        var groovydoc = tasks.named('groovydoc', Groovydoc)
+
         dependsOn groovydoc
-        from groovydoc.destinationDir
+        from groovydoc.get().destinationDir
     }
 }
 
